@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cp portshim.c libgphoto2
 cd libgphoto2
 docker run --rm -v $(pwd):/src -v ~/.homebrew:/homebrewlol trzeci/emscripten \
   emcc -O0 \
@@ -27,5 +28,6 @@ docker run --rm -v $(pwd):/src -v ~/.homebrew:/homebrewlol trzeci/emscripten \
     libgphoto2/gphoto2-version.c \
     libgphoto2/gphoto2-widget.c \
     libgphoto2/jpeg.c \
-    libgphoto2_port/libgphoto2_port/gphoto2-port-log.c
+    libgphoto2_port/libgphoto2_port/gphoto2-port-log.c \
+    portshim.c
 mv a.out* ../
