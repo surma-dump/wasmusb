@@ -57,3 +57,8 @@ EMSCRIPTEN_KEEPALIVE
 int camera_abilities_get_product(CameraAbilities* ca) {
   return ca->usb_product;
 }
+
+EMSCRIPTEN_KEEPALIVE
+int camera_set_abilities(Camera* cam, CameraAbilities* ca) {
+  return gp_camera_set_abilities(cam, *ca);
+}

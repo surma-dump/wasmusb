@@ -30,6 +30,9 @@
     await new Promise(resolve => btn.onclick = resolve);
 
     const device = await navigator.usb.requestDevice({filters: devices});
-    console.log(device);
+
+    const cameraIdx = devices.findIndex(desc => desc.vendor === device.vendorId && desc.product === device.productID);
+    Module._gp_abilities_list_get_abilities(abilitiesListP, cameraIdx, ca);
+    Module._camera_set_abilities(cameraP, ca);
   })();
 </script>
