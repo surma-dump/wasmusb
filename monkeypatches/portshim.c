@@ -43,16 +43,17 @@ void fill_the_list(CameraAbilitiesList *list) {
 }
 
 EMSCRIPTEN_KEEPALIVE
-CameraAbility* malloc_camera_ability() {
-  return malloc(sizeof(CameraAbility));
+CameraAbilities* malloc_camera_abilities() {
+  return malloc(sizeof(CameraAbilities
+  ));
 }
 
 EMSCRIPTEN_KEEPALIVE
-int camera_ability_get_vendor(CameraAbility* ca) {
+int camera_abilities_get_vendor(CameraAbilities* ca) {
   return ca->usb_vendor;
 }
 
 EMSCRIPTEN_KEEPALIVE
-int camera_ability_get_product(CameraAbility* ca) {
+int camera_abilities_get_product(CameraAbilities* ca) {
   return ca->usb_product;
 }

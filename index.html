@@ -16,10 +16,20 @@
     const {p: abilitiesListP} = doPP(pp => Module._gp_abilities_list_new(pp));
     Module._fill_the_list(abilitiesListP);
 
+    const devices = [];
+    const ca = Module._malloc_camera_abilities();
+    for(let i = 0; i < Module._gp_abilities_list_count(abilitiesListP); i++) {
+      Module._gp_abilities_list_get_abilities(abilitiesListP, i, ca);
+      const vendorId = Module._camera_abilities_get_vendor(ca);
+      const productId = Module._camera_abilities_get_product(ca);
+      devices.push({vendorId, productId});
+    }
+
     const btn = document.querySelector('button');
     btn.disabled = false;
-    btn.onclick = _ => {
+    await new Promise(resolve => btn.onclick = resolve);
 
-    }
+    const device = await navigator.usb.requestDevice({filters: devices});
+    console.log(device);
   })();
 </script>

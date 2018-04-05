@@ -14,7 +14,7 @@ docker run --rm -v $(pwd):/src -v ~/.homebrew:/homebrewlol trzeci/emscripten \
     -D HAVE_DCGETTEXT=0 \
     -D LOCALEDIR="\"lol\"" \
     -D CAMLIBS="\"lol\"" \
-    -s EXPORTED_FUNCTIONS='["_gp_context_new","_gp_camera_new","_gp_abilities_list_new","_gp_abilities_list_count","_malloc","_free","_fill_the_list"]' \
+    -s EXPORTED_FUNCTIONS='["_gp_context_new","_gp_camera_new","_gp_abilities_list_new","_gp_abilities_list_count","_gp_abilities_list_get_abilities","_malloc","_free","_fill_the_list"]' \
     libgphoto2/ahd_bayer.c \
     libgphoto2/bayer.c \
     libgphoto2/exif.c \
