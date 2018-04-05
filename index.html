@@ -1,0 +1,14 @@
+<!doctype html>
+
+<script src="a.out.js"></script>
+<script>
+  (async function () {
+    await new Promise(resolve => Module.onRuntimeInitialized = resolve);
+    const cameraPP = Module._malloc(4);
+    const cameraP = new Uint32Array(Module.HEAPU32.buffer, cameraPP, 1)[0];
+    const camera = new Uint32Array(Module.HEAPU32.buffer, cameraP);
+    Module._gp_camera_new(cameraPP);
+
+    console.log(camera);
+  })();
+</script>
