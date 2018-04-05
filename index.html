@@ -1,5 +1,5 @@
 <!doctype html>
-
+<button disabled>Connect to camera</button>
 <script src="a.out.js"></script>
 <script>
   (async function () {
@@ -15,8 +15,11 @@
     const contextP = Module._gp_context_new();
     const {p: abilitiesListP} = doPP(pp => Module._gp_abilities_list_new(pp));
     Module._fill_the_list(abilitiesListP);
-    console.log(Module._gp_abilities_list_count(abilitiesListP));
 
-    console.log(cameraP, contextP, abilitiesListP);
+    const btn = document.querySelector('button');
+    btn.disabled = false;
+    btn.onclick = _ => {
+
+    }
   })();
 </script>
