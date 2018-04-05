@@ -3,12 +3,20 @@
 <script src="a.out.js"></script>
 <script>
   (async function () {
+    function doPP(call) {
+      const pp = Module._malloc(4);
+      call(pp);
+      const p = new Uint32Array(Module.HEAPU32.buffer, pp, 1)[0];
+      const thing = new Uint32Array(Module.HEAPU32.buffer, p);
+      return {pp, p, thing};
+    }
     await new Promise(resolve => Module.onRuntimeInitialized = resolve);
-    const cameraPP = Module._malloc(4);
-    const cameraP = new Uint32Array(Module.HEAPU32.buffer, cameraPP, 1)[0];
-    const camera = new Uint32Array(Module.HEAPU32.buffer, cameraP);
-    Module._gp_camera_new(cameraPP);
+    const {p: cameraP} = doPP(pp => Module._gp_camera_new(pp));
+    const contextP = Module._gp_context_new();
+    const {p: abilitiesListP} = doPP(pp => Module._gp_abilities_list_new(pp));
+    Module._fill_the_list(abilitiesListP);
+    console.log(Module._gp_abilities_list_count(abilitiesListP));
 
-    console.log(camera);
+    console.log(cameraP, contextP, abilitiesListP);
   })();
 </script>
