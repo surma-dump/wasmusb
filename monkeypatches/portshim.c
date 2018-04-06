@@ -95,7 +95,7 @@ int print_camera_text(CameraText* ct) {
 
 EM_JS(int, gp_port_open, (GPPort* port), {
   const sabView = new Int32Array(new SharedArrayBuffer(4));
-  sabView[0] = -1;
+  Atomics.store(sabView, 0, -1);
   mainUI.usb_port_open(sabView);
   Atomics.wait(sabView, 0, -1);
   return 0; // GP_OK
@@ -111,11 +111,11 @@ int gp_port_set_timeout(GPPort* port, int timeout) {
 
 EM_JS(int, gp_port_get_settings, (GPPort* port, GPPortSettings* settings), {
   const sabView = new Int32Array(new SharedArrayBuffer(4));
-  sabView[0] = -1;
+  Atomics.store(sabView, 0, -1);
   mainUI.usb_port_get_max_packet_size(sabView);
   Atomics.wait(sabView, 0, -1);
   console.log(sabView);
-  Module._port_settings_set_max_packet_size(settings, sabView[0]);
+  Module._port_settings_set_max_packet_size(settings, Atomics.load(sabView, 0));
   return 0; // GP_OK
 });
 
@@ -126,33 +126,33 @@ int port_settings_set_max_packet_size(GPPortSettings* settings, int ps) {
 
 EM_JS(int, gp_port_write, (GPPort* port, const char* data, int size), {
   const lock = new Int32Array(new SharedArrayBuffer(4));
-  lock[0] = -1;
+  Atomics.store(lock, 0, -1);
   mainUI.usb_port_write(new Uint8Array(Module.HEAP8.buffer, data, size), lock);
   Atomics.wait(lock, 0, -1);
   // Return bytes written
-  return lock[0];
+  return Atomics.load(lock, 0);
 });
 
 EM_JS(int, gp_port_read, (GPPort* port, char* data, int size), {
   const sab = new SharedArrayBuffer(size + 4);
   const lock = new Int32Array(sab, 0, 1);
   const dataView = new Uint8Array(sab, 4);
-  lock[0] = -1;
+  Atomics.store(lock, 0, -1);
   mainUI.usb_port_read(dataView, lock);
   Atomics.wait(lock, 0, -1);
   Module.HEAP8.set(dataView, data);
 
   // Return bytes read
-  return lock[0];
+  return Atomics.load(lock, 0);
 });
 
 EM_JS(int, gp_port_usb_msg_class_write, (GPPort* port, int request, int value, int index, char* data, int size), {
   const lock = new Int32Array(new SharedArrayBuffer(4));
-  lock[0] = -1;
+  Atomics.store(lock, 0, -1);
   mainUI.usb_port_msg_class_write(request, value, index, new Uint8Array(Module.HEAP8.buffer, data, size), lock);
   Atomics.wait(lock, 0, -1);
   // Return bytes written
-  return lock[0];
+  return Atomics.load(lock, 0);
 });
 
 struct _GPPortPrivateCore {
@@ -184,21 +184,14 @@ EM_JS(void, render_image, (char* mime, char* data, int size), {
 
 EMSCRIPTEN_KEEPALIVE
 char* camera_get_preview(Camera* camera, GPContext* context) {
-  int i = 0;
   CameraFile* file;
-  printf("%d\n", i++);
   gp_file_new(&file);
-  printf("%d\n", i++);
   gp_camera_capture_preview(camera, file, context);
   char* mime_type;
-  printf("%d\n", i++);
   gp_file_detect_mime_type(file);
-  printf("%d\n", i++);
   gp_file_get_mime_type(file, &mime_type);
   char* data;
   int size;
-  printf("%d\n", i++);
   gp_file_get_data_and_size(file, &data, &size);
-  printf("%d\n", i++);
   render_image(mime_type, data, size);
 }
