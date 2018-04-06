@@ -6,7 +6,44 @@
   const worker = new Worker('worker.js');
   const btn = document.querySelector('button');
   btn.disabled = false;
-  let device;
+  let device, ifs, epBulkOut;
+
+  function findInterface() {
+    for(const confs of device.configurations) {
+      for(const ifs of confs.interfaces) {
+        for(const alts of ifs.alternates) {
+          if (alts.interfaceClass == 6 && alts.interfaceProtocol == 1 && alts.interfaceSubclass == 1)
+            return ifs;
+        }
+      }
+    }
+  }
+
+  function max(arr) {
+    return arr.reduce((max, v) => Math.max(v, max));
+  }
+
+  function getMaxPacketSize(ifs) {
+    return max(ifs.alternates.map(alt => max(alt.endpoints.map(ep => ep.packetSize))))
+  }
+
+  function getBulkOut(ifs) {
+    for(const alt of ifs.alternates) {
+      for(const ep of alt.endpoints) {
+        if(ep.type == 'bulk' && ep.direction == 'out')
+          return ep;
+      }
+    }
+  }
+
+  function getBulkIn(ifs) {
+    for(const alt of ifs.alternates) {
+      for(const ep of alt.endpoints) {
+        if(ep.type == 'bulk' && ep.direction == 'in')
+          return ep;
+      }
+    }
+  }
 
   Comlink.expose({
     async getUsbPermission(devices) {
@@ -16,6 +53,44 @@
         vendorId: device.vendorId,
         productId: device.productId,
       };
+    },
+    async usb_port_open(sab) {
+      await device.open();
+      ifs = findInterface();
+      await device.claimInterface(ifs.interfaceNumber);
+      epBulkIn = getBulkIn(ifs);
+      epBulkOut = getBulkOut(ifs);
+      sab[0] = 0;
+      Atomics.wake(sab, 0);
+    },
+    async usb_port_get_max_packet_size(sab) {
+      sab[0] = getMaxPacketSize(ifs);
+      console.log('usb_port_get_max_packet_size', sab[0]);
+      Atomics.wake(sab, 0);
+    },
+    async usb_port_write(data, lock) {
+      const result = await device.transferOut(epBulkOut.endpointNumber, data);
+      console.log('usb_port_write', data, result);
+      lock[0] = result.bytesWritten;
+      Atomics.wake(lock, 0);
+    },
+    async usb_port_msg_class_write(request, value, index, data, lock) {
+      const opts = {
+        requestType: 'class',
+        recipient: 'interface',
+        request, value, index
+      }
+      const result = await device.controlTransferOut(opts, data);
+      console.log('usb_port_msg_class_write', data, result, opts);
+      lock[0] = result.bytesWritten;
+      Atomics.wake(lock, 0);
+    },
+    async usb_port_read(data, lock) {
+      const result = await device.transferIn(epBulkIn.endpointNumber, data.byteLength);
+      data.set(new Uint8Array(result.data.buffer));
+      console.log('usb_port_read', data, result.status, new Uint8Array(result.data.buffer));
+      lock[0] = result.data.byteLength;
+      Atomics.wake(lock, 0);
     }
   }, worker);
 </script>
