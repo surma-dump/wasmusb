@@ -1,38 +1,21 @@
 <!doctype html>
 <button disabled>Connect to camera</button>
-<script src="a.out.js"></script>
+<!-- <script src="a.out.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/comlinkjs@2.3.0/comlink.global.min.js"></script>
 <script>
-  (async function () {
-    function doPP(call) {
-      const pp = Module._malloc(4);
-      call(pp);
-      const p = new Uint32Array(Module.HEAPU32.buffer, pp, 1)[0];
-      const thing = new Uint32Array(Module.HEAPU32.buffer, p);
-      return {pp, p, thing};
+  const worker = new Worker('worker.js');
+  const btn = document.querySelector('button');
+  btn.disabled = false;
+  let device;
+
+  Comlink.expose({
+    async getUsbPermission(devices) {
+      await new Promise(resolve => btn.onclick = resolve);
+      device = await navigator.usb.requestDevice({filters: devices});
+      return {
+        vendorId: device.vendorId,
+        productId: device.productId,
+      };
     }
-    await new Promise(resolve => Module.onRuntimeInitialized = resolve);
-    const {p: cameraP} = doPP(pp => Module._gp_camera_new(pp));
-    const contextP = Module._gp_context_new();
-    const {p: abilitiesListP} = doPP(pp => Module._gp_abilities_list_new(pp));
-    Module._fill_the_list(abilitiesListP);
-
-    const devices = [];
-    const ca = Module._malloc_camera_abilities();
-    for(let i = 0; i < Module._gp_abilities_list_count(abilitiesListP); i++) {
-      Module._gp_abilities_list_get_abilities(abilitiesListP, i, ca);
-      const vendorId = Module._camera_abilities_get_vendor(ca);
-      const productId = Module._camera_abilities_get_product(ca);
-      devices.push({vendorId, productId});
-    }
-
-    const btn = document.querySelector('button');
-    btn.disabled = false;
-    await new Promise(resolve => btn.onclick = resolve);
-
-    const device = await navigator.usb.requestDevice({filters: devices});
-
-    const cameraIdx = devices.findIndex(desc => desc.vendor === device.vendorId && desc.product === device.productID);
-    Module._gp_abilities_list_get_abilities(abilitiesListP, cameraIdx, ca);
-    Module._camera_set_abilities(cameraP, ca);
-  })();
+  }, worker);
 </script>
