@@ -55,6 +55,7 @@
       };
     },
     async usb_port_open(sab) {
+      console.log('start');
       await device.open();
       ifs = findInterface();
       await device.claimInterface(ifs.interfaceNumber);
@@ -65,12 +66,10 @@
     },
     async usb_port_get_max_packet_size(sab) {
       sab[0] = getMaxPacketSize(ifs);
-      console.log('usb_port_get_max_packet_size', sab[0]);
       Atomics.wake(sab, 0);
     },
     async usb_port_write(data, lock) {
       const result = await device.transferOut(epBulkOut.endpointNumber, data);
-      console.log('usb_port_write', data, result);
       lock[0] = result.bytesWritten;
       Atomics.wake(lock, 0);
     },
@@ -81,14 +80,12 @@
         request, value, index
       }
       const result = await device.controlTransferOut(opts, data);
-      console.log('usb_port_msg_class_write', data, result, opts);
       lock[0] = result.bytesWritten;
       Atomics.wake(lock, 0);
     },
     async usb_port_read(data, lock) {
       const result = await device.transferIn(epBulkIn.endpointNumber, data.byteLength);
       data.set(new Uint8Array(result.data.buffer));
-      console.log('usb_port_read', data, result.status, new Uint8Array(result.data.buffer));
       lock[0] = result.data.byteLength;
       Atomics.wake(lock, 0);
     }

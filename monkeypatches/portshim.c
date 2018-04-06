@@ -139,7 +139,6 @@ EM_JS(int, gp_port_read, (GPPort* port, char* data, int size), {
   lock[0] = -1;
   mainUI.usb_port_read(dataView, lock);
   Atomics.wait(lock, 0, -1);
-  console.log('gp_port_read', dataView);
   Module.HEAP8.set(dataView, data);
 
   // Return bytes read
