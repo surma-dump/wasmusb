@@ -4,7 +4,7 @@ cp -r monkeypatches/* libgphoto2
 cd libgphoto2
 docker run --rm -v $(pwd):/src -v ~/.homebrew:/homebrewlol trzeci/emscripten \
   emcc -O0 \
-    -s WASM=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap"]' \
+    -s WASM=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap","UTF8ToString"]' \
     -s ASSERTIONS=1 \
     -I . -I libgphoto2_port -I libgphoto2 -I libgphoto2/libgphoto2_port \
      -Wno-error -Wno-implicit-function-declaration \

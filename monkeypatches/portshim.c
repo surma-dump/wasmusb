@@ -1,6 +1,7 @@
 #include "emscripten.h"
 #include <gphoto2/gphoto2-abilities-list.h>
 #include <gphoto2/gphoto2-camera.h>
+#include <gphoto2/gphoto2-file.h>
 #include <gphoto2/gphoto2-port-result.h>
 #include <gphoto2/gphoto2-port-log.h>
 #include "ptp_shim.h"
@@ -163,12 +164,41 @@ struct _GPPortPrivateCore {
 };
 
 
-const char * gp_port_get_error (GPPort *port)
-{
+const char * gp_port_get_error (GPPort *port) {
 	if (port && port->pc && strlen (port->pc->error))
     printf("ERROR: %s\n", port->pc->error);
   else
     printf("ERROR: With no description\n");
 
 	return "";
+}
+
+
+EM_JS(void, render_image, (char* mime, char* data, int size), {
+  const dataView = new Uint8Array(Module.HEAP8.buffer, data, size);
+  const type = Module.UTF8ToString(mime);
+  const blob = new Blob([dataView], {type});
+  const url = URL.createObjectURL(blob);
+  mainUI.renderImage(url);
+});
+
+EMSCRIPTEN_KEEPALIVE
+char* camera_get_preview(Camera* camera, GPContext* context) {
+  int i = 0;
+  CameraFile* file;
+  printf("%d\n", i++);
+  gp_file_new(&file);
+  printf("%d\n", i++);
+  gp_camera_capture_preview(camera, file, context);
+  char* mime_type;
+  printf("%d\n", i++);
+  gp_file_detect_mime_type(file);
+  printf("%d\n", i++);
+  gp_file_get_mime_type(file, &mime_type);
+  char* data;
+  int size;
+  printf("%d\n", i++);
+  gp_file_get_data_and_size(file, &data, &size);
+  printf("%d\n", i++);
+  render_image(mime_type, data, size);
 }

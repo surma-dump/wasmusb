@@ -31,7 +31,5 @@ const mainUI = Comlink.proxy(self);
   Module._camera_set_abilities(cameraP, ca);
 
   Module._gp_camera_init(cameraP, contextP);
-  const cameraTextP = Module._malloc_camera_text();
-  Module._gp_camera_get_summary(cameraP, cameraTextP, contextP);
-  Module._print_camera_text(cameraTextP);
+  const previewP = Module._camera_get_preview(cameraP, contextP);
 })();
