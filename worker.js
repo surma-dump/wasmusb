@@ -29,4 +29,9 @@ const mainUI = Comlink.proxy(self);
   const cameraIdx = devices.findIndex(desc => desc.vendor === device.vendorId && desc.product === device.productID);
   Module._gp_abilities_list_get_abilities(abilitiesListP, cameraIdx, ca);
   Module._camera_set_abilities(cameraP, ca);
+
+  Module._gp_camera_init(cameraP, contextP);
+  const cameraTextP = Module._malloc_camera_text();
+  Module._gp_camera_get_summary(cameraP, cameraTextP, contextP);
+  Module._print_camera_text(cameraTextP);
 })();
